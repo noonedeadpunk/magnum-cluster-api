@@ -534,7 +534,7 @@ def get_server_group_id(
 
     # Check if the server group exists already
     osc = clients.get_openstack_api(ctx)
-    server_groups = osc.nova().server_groups.list()
+    server_groups = osc.nova().server_groups.list(all_projects=ctx.is_admin)
     server_group_id_list = []
     for sg in server_groups:
         if sg.name == name:
@@ -673,3 +673,12 @@ def _delete_server_group(
         osc.nova().server_groups.delete(server_group_id)
     except nova_exception.NotFound:
         return
+
+
+def get_fixed_network_id(context, network):
+    if network and not uuidutils.is_uuid_like(network):
+        return neutron.get_network(
+            context, network, source="name", target="id", external=False
+        )
+    else:
+        return network
